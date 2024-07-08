@@ -462,12 +462,14 @@ async fn submit_block(
     sha_p2pool_client: Option<&mut ShaP2PoolGrpcClient>,
     block: Block,
     wallet_payment_address: &TariAddress,
+    target_difficulty: u64,
 ) -> Result<SubmitBlockResponse, MinerError> {
     if config.sha_p2pool_enabled {
         if let Some(client) = sha_p2pool_client {
             return Ok(client
                 .submit_block(SubmitBlockRequest {
                     block: Some(block),
+                    target_difficulty,
                     wallet_payment_address: wallet_payment_address.to_hex(),
                 })
                 .await
@@ -555,6 +557,7 @@ async fn mining_cycle(
                     sha_p2pool_client.lock().await.as_mut(),
                     mined_block,
                     wallet_payment_address,
+                    report.target_difficulty,
                 )
                 .await?;
                 block_submitted = true;
