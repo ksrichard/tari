@@ -362,7 +362,7 @@ async fn get_new_block(
 ) -> Result<GetNewBlockResponse, MinerError> {
     if config.sha_p2pool_enabled {
         if let Some(client) = sha_p2pool_client.lock().await.as_mut() {
-            return get_new_block_p2pool_node(client).await;
+            return get_new_block_p2pool_node(client, wallet_payment_address.to_hex()).await;
         }
     }
 
@@ -448,9 +448,10 @@ async fn get_new_block_base_node(
 
 async fn get_new_block_p2pool_node(
     sha_p2pool_client: &mut ShaP2PoolGrpcClient,
+    wallet_payment_address: String,
 ) -> Result<GetNewBlockResponse, MinerError> {
     let block_result = sha_p2pool_client
-        .get_new_block(GetNewBlockRequest::default())
+        .get_new_block(GetNewBlockRequest{ wallet_payment_address })
         .await?
         .into_inner();
     let new_block_result = block_result.block.ok_or_else(|| err_empty("block result"))?;
